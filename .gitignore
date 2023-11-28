@@ -87,5 +87,3 @@ dkms.conf
 .nfs*
 
 # winter
-client
-server

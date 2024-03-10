@@ -12,13 +12,19 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "router.h"
+
 #define ISVALIDSOCKET(s) ((s) >= 0)
 
 namespace winter {
 	class Server {
 	public:
-		Server() {}
+		Server(Router router) : router_(router) {}
+		void send_response(int client_socket, std::string response) {
+			send(client_socket, response.c_str(), response.size(), 0);
+		}
 		void start(int port) {
+			port_ = port;
 			struct addrinfo hints;
 			memset(&hints, 0, sizeof(hints));
 			hints.ai_family = AF_INET;
@@ -26,7 +32,7 @@ namespace winter {
 			hints.ai_flags = AI_PASSIVE;
 
 			struct addrinfo* bind_address;
-			getaddrinfo(0, std::to_string(port).c_str(), &hints, &bind_address);
+			getaddrinfo(0, std::to_string(port_).c_str(), &hints, &bind_address);
 
 			int server_socket = socket(bind_address->ai_family,
 									bind_address->ai_socktype,
@@ -50,7 +56,7 @@ namespace winter {
 				throw std::runtime_error("listen() failed.");
 			}
 			
-			std::cout << "Server is listening on port " << port << '\n';
+			std::cout << "Server is listening on port " << port_ << '\n';
 			
 			struct sockaddr_storage client_address;
 			socklen_t client_length = sizeof(client_address);
@@ -62,11 +68,35 @@ namespace winter {
 					if(!ISVALIDSOCKET(client_socket)) {
 						throw std::runtime_error("accept() failed.");
 					}
-					char request[1024];
-					int bytes_received = recv(client_socket, request, sizeof(request), 0);
+					char buffer[1024];
+					int bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
 					if(!ISVALIDSOCKET(bytes_received)) {
 						throw std::runtime_error("accept() failed.");
 					}
+					std::string request(buffer, bytes_received);
+					bool route_matched{false};
+
+					for(int i = 0; i < router_.get_routes().size(); ++i) {
+						if(request.find(router_.get_routes()[i].get_name()) != std::string::npos) {
+							route_matched = true;
+							winter::Request req;
+							winter::Response res(client_socket);
+							router_.get_routes()[i].execute(req, res);
+
+							std::string response_message = "Hello, Route: " + router_.get_routes()[i].get_name();
+							std::string response = "HTTP/1.1 200 OK\r\n"
+												"Content-Length: " + std::to_string(response_message.size())
+												+ "\r\n\r\n"
+												+ response_message;
+							break;
+						}
+					}
+
+					if(!route_matched) {
+						std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+						send_response(client_socket, response);
+					}
+
 				} catch(const std::runtime_error& ex) {
 					std::cerr << ex.what() << '\n';
 				}
@@ -74,12 +104,11 @@ namespace winter {
 					close(client_socket);
 				}
 			}
-
 			close(server_socket);
-
 		}
 	private:
 		int port_;
+		Router router_;
 	};
 } // namespace winter
 

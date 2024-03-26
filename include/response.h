@@ -10,7 +10,8 @@ namespace winter {
 	class Response {
 	public:
 		Response(int client_socket);
-		void send(int status, std::string message);
+		void send(std::string message);
+        void send_file(std::string path);
 	private:
 		int status_;
 		int client_socket_;

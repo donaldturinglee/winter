@@ -13,26 +13,10 @@ namespace winter {
 	class Router {
 	public:
 		Router() {}
-		void get(const std::string& url, std::function<void(Request& http_request, Response& http_response)> callback) {
-			Route route(url, callback);
-			routes_.push_back(route);
-		}
-		void post(const std::string& url, std::function<void(Request& http_request, Response& http_response)> callback) {
-			Route route(url, callback);
-			routes_.push_back(route);
-		}
-		std::vector<Route> get_routes() {
-			return routes_;
-		}
-		Route find_route(std::string name) {
-			std::vector<Route> routes = routes_;
-			for(int i = 0; i < routes.size(); ++i) {
-				if(routes.at(i).get_name() == name) {
-					return routes.at(i);
-				}
-			}
-			throw std::runtime_error("Route not found: " + name);
-		}
+		void get(const std::string& url, std::function<void(Request& http_request, Response& http_response)> callback);
+		void post(const std::string& url, std::function<void(Request& http_request, Response& http_response)> callback);
+		std::vector<Route> get_routes();
+		Route find_route(std::string name);
 	private:
 		std::vector<Route> routes_;
 	};

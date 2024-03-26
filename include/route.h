@@ -5,26 +5,25 @@
 #include <functional>
 #include "request.h"
 #include "response.h"
+#include "method.h"
 
 namespace winter {
 
 	class Route {
 	public:
-		Route(std::string name, std::function<void(Request& http_request, Response& http_response)> callback)
-			: name_(name), callback_(callback) {}
+		Route(std::string name, Methods method, std::function<void(Request& http_request, Response& http_response)> callback);
 
-		std::string get_name() const {
-			return name_;
-		}
+		std::string get_name() const;
 
-		void execute(Request& http_request, Response& http_response) {
-			callback_(http_request, http_response);
-		}
+        Methods get_method() const;
+
+		void execute(Request& http_request, Response& http_response);
 	private:
 		std::string name_;
+        Methods method_;
 		std::function<void(Request& http_request, Response& http_response)> callback_;
 	};
 
-} // namespace winter;
+} // namespace winter
 
 #endif // ROUTE_H

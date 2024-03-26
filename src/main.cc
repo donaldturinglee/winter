@@ -11,6 +11,13 @@ int main(int argc, char* argv[]) {
 		response.send(status, message);
 	});
 
+    router.post("/user", [&](winter::Request& request, winter::Response& response){
+       response.send(200, "Success for user");
+    });
+    router.get("/user", [&](winter::Request& request, winter::Response& response){
+        response.send(200, "Success for user");
+    });
+
 
 	winter::Server server(router);
 	server.start(8080);

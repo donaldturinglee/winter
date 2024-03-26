@@ -9,16 +9,8 @@ namespace winter {
 
 	class Response {
 	public:
-		Response(int client_socket) : client_socket_(client_socket) {}
-		void send(int status, std::string message) {
-			status_ = status;
-			std::cout << status_ << " " << message << '\n';
-			std::string response = "HTTP/1.1 200 OK\r\n"
-								"Content-Length: " + std::to_string(message.size())
-								+ "\r\n\r\n"
-								+ message;
-			::send(client_socket_, response.c_str(), response.size(), 0);
-		}
+		Response(int client_socket);
+		void send(int status, std::string message);
 	private:
 		int status_;
 		int client_socket_;
